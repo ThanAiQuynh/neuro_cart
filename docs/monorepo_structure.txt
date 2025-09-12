@@ -1,0 +1,44 @@
+MONOREPO PROJECT STRUCTURE (Monolith apps with shared packages)
+.
+├─ apps/
+│  ├─ api/                        # FastAPI app (interfaces layer)
+│  │  ├─ main.py
+│  │  ├─ routers/                # HTTP routers (Pydantic I/O)
+│  │  ├─ di/                     # dependency injection wiring
+│  │  ├─ settings.py             # env, config
+│  │  ├─ openapi.json            # generated spec (CI)
+│  │  └─ tests/                  # API/integration tests
+│  └─ web/                        # Next.js (App Router)
+│     ├─ app/                    # routes: (marketing, catalog, checkout, admin, chat)
+│     ├─ features/               # auth, catalog, cart, checkout, orders, chat, admin
+│     ├─ entities/               # Product, Cart, Order, Message
+│     ├─ shared/                 # api client (ts-sdk), hooks, ui (shadcn), schemas (zod)
+│     ├─ public/                 # assets
+│     └─ tests/                  # vitest + playwright
+├─ packages/
+│  ├─ core/                      # Python domain & application (Clean Architecture)
+│  │  ├─ domain/                 # entities, value objects, domain events
+│  │  ├─ application/            # use-cases, ports, dto
+│  │  └─ tests/
+│  ├─ infra/                     # Python infrastructure adapters
+│  │  ├─ db/                     # SQLAlchemy engine/session, models mappings
+│  │  ├─ repos/                  # repo implementations
+│  │  ├─ embeddings/             # pgvector utils
+│  │  ├─ payments/               # providers (mock, stripe/paypal stub)
+│  │  ├─ storage/                # file/blob adapters
+│  │  └─ tests/
+│  ├─ alembic/                   # migrations & SQL seeds
+│  │  ├─ versions/               # 001_..., 002_...
+│  │  ├─ rag_agentic.sql         # from design
+│  │  └─ indexes_and_views.sql   # from design
+│  ├─ ts-sdk/                    # generated TS API client (OpenAPI)
+│  └─ ui/                        # FE shared UI components (shadcn)
+├─ tools/
+│  ├─ ci/                        # pipelines, Github Actions
+│  ├─ scripts/                   # codegen, db tasks, seeders
+│  └─ pre-commit/                # hooks (ruff, black, eslint, prettier)
+├─ .env.example
+├─ docker-compose.yaml           # dev/staging/prod services (db, api, web, worker)
+├─ pyproject.toml                # ruff/black/mypy/pytest config
+├─ package.json                  # turbo, eslint, prettier
+└─ turbo.json                    # Turborepo build graph

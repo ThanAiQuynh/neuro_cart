@@ -1,0 +1,144 @@
+E-COMMERCE + RAG AGENTIC MCP — KẾ HOẠCH SPRINT (Monorepo Monolith)
+BE: FastAPI | FE: Next.js | DB: PostgreSQL | Clean Architecture
+Generated at: 2025-09-06 18:53:59
+
+==================================================
+TỔNG QUAN KIẾN TRÚC
+- Clean Architecture (BE/FastAPI):
+  domain/ | application/ | infrastructure/ | interfaces/
+- FE/Next.js (App Router):
+  features/ | entities/ | shared/ (api client, hooks, ui, schemas)
+- Monorepo:
+  /apps/api (FastAPI), /apps/web (Next.js), /packages (shared), /tools (ci/scripts)
+- Chất lượng:
+  Python: ruff, black, mypy, pytest, alembic
+  TS: eslint, prettier, vitest, playwright, tanstack/query
+  CI: lint → test → build → migration (safe) → deploy
+  OpenAPI -> gen TS client tự động (/packages/ts-sdk)
+
+==================================================
+SPRINT 1 (08–14 Sep 2025): Bootstrap & IAM cơ bản
+Mục tiêu
+- Dựng monorepo, CI/CD, Docker Compose (dev/staging/prod)
+- Chạy migrations: rag_agentic.sql + indexes_and_views.sql
+- Auth: đăng ký/đăng nhập, JWT, RBAC cơ bản
+BE
+- Khởi tạo FastAPI + cấu trúc Clean Architecture
+- SQLAlchemy models (bộ tối thiểu)
+- Alembic 001 (import SQL có sẵn) + seed roles (admin, staff, customer)
+- Use-cases: SignUp, SignIn, GetMe; Middleware JWT/RBAC
+FE
+- Next.js bootstrap + shadcn + TanStack Query
+- Auth pages, protected routes
+DoD
+- CI chạy lint+test+build; OpenAPI spec + gen TS client
+- E2E login/register chạy được
+Ước lượng: 24–30 điểm
+
+SPRINT 2 (15–21 Sep 2025): Catalog đọc (SEO-friendly)
+Mục tiêu
+- Products/Variants/Images/Categories đọc + filter cơ bản
+BE
+- Use-cases: ListProducts, GetProductDetail, ListCategories
+- Endpoints: GET /api/catalog/products|{{id}}|categories
+FE
+- Trang Home, Category, Product Detail; filters + pagination + SEO meta
+DoD
+- P95 GET /api/catalog/products < 150ms (dev); e2e listing/detail
+Ước lượng: 22–26 điểm
+
+SPRINT 3 (22–28 Sep 2025): Cart + Address + Shipping
+Mục tiêu
+- sales.carts/cart_items/addresses/shipping_methods/rates
+BE
+- Use-cases: AddToCart, UpdateCartItem, RemoveCartItem, GetMyCart
+- Address CRUD + default; Tính ship theo region/weight
+- Endpoints: POST/PATCH/DELETE /api/cart/items, GET /api/cart, GET /api/shipping/methods
+- Address: POST/GET/PATCH/DELETE /api/addresses
+FE
+- UI giỏ hàng, mini-cart, address form, chọn shipping; persist cart (user+anon)
+DoD
+- Concurrency safe; 30 tests (use-case + API + e2e)
+Ước lượng: 26–30 điểm
+
+SPRINT 4 (29 Sep–05 Oct 2025): Checkout + Orders + Payments (COD + mock)
+Mục tiêu
+- Tạo đơn từ cart, snapshot giá; Payment COD + mock Stripe/PayPal
+BE
+- Use-cases: CreateOrderFromCart, ConfirmPayment, ListMyOrders, GetOrderDetail
+- Webhook mock cập nhật payments.status; Admin: ListOrders, UpdateOrderStatus
+FE
+- Checkout stepper; Order history
+DoD
+- Flow checkout E2E; log domain events (OrderCreated, PaymentSucceeded)
+Ước lượng: 28–34 điểm
+
+SPRINT 5 (06–12 Oct 2025): RAG Ingestion & Hybrid Search
+Mục tiêu
+- KB quản trị, ingest nguồn, chunk+embed (pgvector 768), hybrid keyword+vector
+BE
+- Use-cases: CreateKnowledgeBase, AddSource, IngestDocument, SearchChunksHybrid
+- Endpoints: POST /api/rag/kbs|{{id}}/sources|{{id}}/ingest, POST /api/rag/search
+- Log chat.search_logs; ANALYZE rag.chunks
+FE (admin)
+- KB manager (tạo KB, add source, upload, test search)
+DoD
+- ANN top_k=8 < 300ms dev; docs đổi dims/ivfflat.probes
+Ước lượng: 26–30 điểm
+
+SPRINT 6 (13–19 Oct 2025): Agentic MCP + Chat (tools)
+Mục tiêu
+- Lập agent, gán tools; chat phiên + logging tool calls
+BE
+- Tools: catalog.lookup_product, sales.order_status, sales.cart_ops, sales.discount_suggest
+- Use-cases: CreateAgent, AttachTool, StartChatSession, PostMessage (SSE), InvokeTool
+- Embedding chat.messages.embedding
+- Endpoints: POST /api/agents|{{id}}/tools|chat/sessions|chat/sessions/{{id}}/messages
+FE
+- Chat UI streaming + quick actions
+DoD
+- agent.tool_invocations lưu đủ request/response/latency/status; feedback API
+Ước lượng: 30–36 điểm
+
+SPRINT 7 (20–26 Oct 2025): Admin console & đánh giá
+Mục tiêu
+- Orders/Payments/Refunds dashboards; KB monitoring; Search logs & feedback
+BE
+- Tổng hợp metrics, export CSV; RLS tinh chỉnh (owner KB, admin override)
+FE (admin)
+- Bảng quản trị + feedback review UI
+DoD
+- RBAC admin/staff/customer rõ ràng; P95 admin API < 200ms dev
+Ước lượng: 22–28 điểm
+
+SPRINT 8 (27 Oct–02 Nov 2025): Hardening & Launch
+Mục tiêu
+- SEO (sitemap, OG), i18n vi/en; caching; index audit; rate limiting; security
+- Load test, SLO, runbook
+DoD
+- Lighthouse ≥ 90; Load: 200 RPS read / 20 RPS write (dev)
+- Release v1.0.0
+Ước lượng: 20–26 điểm
+
+==================================================
+BACKLOG MAPPING THEO DB
+- public (IAM, sessions...): S1, S7
+- catalog (products/variants/images/categories): S2
+- sales (carts/addresses/shipping/payments/refunds): S3–S4
+- orders (orders/order_items): S4
+- rag (kbs/sources/documents/chunks/ingestions): S5
+- chat (sessions/messages/feedback/search_logs): S6–S7
+- agent (agents/tools/agent_tools/tool_invocations/agent_runs): S6
+
+ACCEPTANCE CHECKLIST (MỖI SPRINT)
+- Use-case diagram ngắn + API contract (OpenAPI)
+- Unit/API test ≥ 80% use-case mới; e2e chính
+- Observability: structured logs + trace id
+- Migration forward-only + rollback kế hoạch
+- Docs: README sprint + changelog
+
+RỦI RO & GIẢM THIỂU
+- Embedding dims/model thay đổi → cấu hình + migration
+- ANN recall thấp → tăng ivfflat.probes, rerank
+- Tool loop → timeout, circuit breaker, audit log
+- N+1 → review index, eager-load, query kế hoạch
