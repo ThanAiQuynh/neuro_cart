@@ -4,8 +4,9 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any
 
-from sqlalchemy import select, func, update
+from sqlalchemy import and_, bindparam, select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import INET
 
 from packages.infra.db.models.ops.login_attempt import LoginAttempt
 
@@ -38,17 +39,18 @@ class LoginAttemptRepo:
         """
         now = datetime.now(timezone.utc)
         since = now - self.window
+        conds = [
+            LoginAttempt.email_canon == email.lower(),
+            LoginAttempt.attempted_at >= since,
+        ]
+        if ip:  # chỉ thêm điều kiện khi có IP
+            conds.append(LoginAttempt.ip == bindparam("ip", ip, type_=INET()))
 
         # Đếm số lần đăng nhập thất bại trong cửa sổ thời gian
         stmt = (
             select(func.count())
             .select_from(LoginAttempt)
-            .where(
-                LoginAttempt.email == email,
-                LoginAttempt.ip == ip,
-                LoginAttempt.success.is_(False),
-                LoginAttempt.created_at >= since,
-            )
+            .where(and_(*conds))
         )
         res = await self.s.execute(stmt)
         fail_count: int = int(res.scalar() or 0)
@@ -67,7 +69,7 @@ class LoginAttemptRepo:
         - success: True nếu đăng nhập thành công, False nếu thất bại.
         - commit: Nếu True thì commit thay đổi vào DB ngay.
         """
-        attempt = LoginAttempt(email=email, ip=ip, success=success)
+        attempt = LoginAttempt(email_canon=email, ip=ip)
         self.s.add(attempt)  # Thêm bản ghi vào session
         await self.s.flush()  # Đẩy thay đổi lên DB (chưa commit)
         if commit:

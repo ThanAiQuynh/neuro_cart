@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import MetaData, func
+from sqlalchemy import TIMESTAMP, MetaData, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -50,12 +50,25 @@ class UUIDPk:
     )
 
 class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),   # dùng server_default để DB tự gán
+        nullable=False,
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        default=func.now(), onupdate=func.now(), nullable=False
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
 class SoftDeleteMixin:
-    deleted_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)
-    deleted_by: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True
+    )
+    deleted_by: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True
+    )
     delete_reason: Mapped[Optional[str]] = mapped_column(nullable=True)

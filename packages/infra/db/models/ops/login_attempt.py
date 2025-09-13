@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Index, BigInteger, text
+from sqlalchemy import Index, text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import CITEXT, INET, TIMESTAMP
 from ..base import Base, UUIDPk
@@ -8,8 +8,8 @@ from ..base import Base, UUIDPk
 class LoginAttempt(Base, UUIDPk):
     __tablename__ = "login_attempts"
     __table_args__ = (
-        Index("ix_login_attempts_email_time", "email_canon", "attempted_at".desc()),
-        Index("ix_login_attempts_ip_time", "ip", "attempted_at".desc()),
+        Index("ix_login_attempts_email_time", "email_canon", "attempted_at"),
+        Index("ix_login_attempts_ip_time", "ip", "attempted_at"),
         {"schema": "ops"},
     )
 

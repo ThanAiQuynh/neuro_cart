@@ -27,7 +27,10 @@ class OAuthAccount(Base, UUIDPk):
 
     access_token_encrypted: Mapped[Optional[bytes]] = mapped_column(BYTEA, nullable=True)
     refresh_token_encrypted: Mapped[Optional[bytes]] = mapped_column(BYTEA, nullable=True)
-    expires_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False
+    )
 
     # relationship ngược với User
     user: Mapped["User"] = relationship(back_populates="oauth_accounts")

@@ -23,10 +23,14 @@ from .return_ import Return
 from .return_item import ReturnItem
 from .review import Review
 from .coupon import Coupon
+from .password_reset import PasswordReset
+from .api_key import ApiKey
+from .mfa_totp import MfaTotp
+from .oauth_account import OAuthAccount
 
 __all__ = [
     "User", "Role", "UserRole", "Customer", "Address", "Brand", "Category", "ProductCategory",
     "Product", "ProductVariant", "MediaAsset", "InventoryLocation", "InventoryLevel", "Price",
     "Cart", "CartItem", "Order", "OrderItem", "Payment", "Shipment", "ShipmentItem",
-    "Return", "ReturnItem", "Review", "Coupon",
+    "Return", "ReturnItem", "Review", "Coupon", "PasswordReset", "ApiKey", "MfaTotp", "OAuthAccount"
 ]

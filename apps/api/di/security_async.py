@@ -17,5 +17,8 @@ _token_service = AsyncJWTService(
 async def get_password_hasher() -> AsyncBcryptHasher:
     return _password_hasher
 
+async def create_refresh_token() -> AsyncJWTService:
+    return _token_service
+
 async def get_token_service() -> AsyncJWTService:
     return _token_service

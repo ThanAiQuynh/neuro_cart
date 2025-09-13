@@ -10,8 +10,9 @@ from ..base import Base, UUIDPk, TimestampMixin, SoftDeleteMixin
 class Product(Base, UUIDPk, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "products"
     __table_args__ = (
-        Index("ux_products_slug_live", "slug", unique=True, postgresql_where=text("deleted_at IS NULL")),
-        {"schema": "core"}
+        Index("ux_products_slug_live", "slug", unique=True,
+            postgresql_where=text("deleted_at IS NULL")),
+        {"schema": "core"},
     )
 
     brand_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("core.brands.id", ondelete="SET NULL"))

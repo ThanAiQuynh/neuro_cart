@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 import uuid
-from sqlalchemy import ForeignKey, Index, UniqueConstraint
+from sqlalchemy import TIMESTAMP, ForeignKey, Index, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, INET
 from ..base import Base, UUIDPk, TimestampMixin
@@ -11,20 +11,10 @@ from ..base import Base, UUIDPk, TimestampMixin
 class RefreshToken(Base, UUIDPk):
     __tablename__ = "refresh_tokens"
     __table_args__ = (
-        # unique (jti)
         UniqueConstraint("jti", name="uq_tokens_jti"),
-
-        # unique partial (family_id) WHERE revoked_at IS NULL
-        Index(
-            "uq_tokens_family_active",
-            "family_id",
-            unique=True,
-            postgresql_where=(lambda: RefreshToken.revoked_at.is_(None))  # tham chiếu field
-        ),
-
-        # index (user_id, expires_at)
+        Index("uq_tokens_family_active", "family_id", unique=True,
+            postgresql_where=text("revoked_at IS NULL")),
         Index("ix_tokens_userid_expires", "user_id", "expires_at"),
-
         {"schema": "ops"},
     )
 
@@ -53,8 +43,14 @@ class RefreshToken(Base, UUIDPk):
         default=datetime.utcnow,
         nullable=False
     )
-    expires_at: Mapped[datetime] = mapped_column(nullable=False)
-    revoked_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False
+    )
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True
+    )
     replaced_by: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True),
         nullable=True

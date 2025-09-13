@@ -1,8 +1,7 @@
 
 from __future__ import annotations
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import hashlib
-from time import timezone
 from typing import Annotated
 from uuid import UUID
 import uuid
@@ -18,7 +17,7 @@ from packages.core.application.errors import AlreadyExists, AuthenticationError
 from apps.api.di.security_async import get_password_hasher, get_token_service
 from apps.api.di.auth_bearer import get_current_payload
 from apps.api.di.container import get_auth_cookie_manager, get_auth_session_repo, get_login_attempt_repo, get_refresh_token_pepper, get_refresh_token_repo, get_refresh_token_ttl, get_user_repo, get_role_repo, get_customer_repo, get_address_repo, get_access_token_ttl
-from packages.core.application.identity.dto import AddressDTO, AddressInput, ChangePasswordInput, LoginInput, RegisterInput, UpdateProfileInput, UserDTO, user_to_dto
+from packages.core.application.identity.dto import AddressDTO, AddressInput, ChangePasswordInput, LoginInput, LoginResponse, RegisterInput, TokenResponse, UpdateProfileInput, UserDTO, user_to_dto
 from packages.core.application.identity.use_cases import AddAddress, ChangePassword, LoginUser, RegisterUser, UpdateProfile
 from packages.core.application.ports.security_async import IAsyncPasswordHasher, IAsyncTokenService
 from packages.infra.repos.core.address_repo import AddressRepo
@@ -30,14 +29,6 @@ from packages.infra.repos.core.role_repo import RoleRepo
 from packages.infra.repos.core.user_repo import UserRepo
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
-class LoginResponse(BaseModel):
-    user: UserDTO
-    token: TokenResponse
 
 @router.post("/register", response_model=UserDTO, status_code=201)
 async def register_user(
@@ -80,7 +71,7 @@ async def login_user(
 
     # 2) Tìm user + verify mật khẩu
     try:
-        user = await users.by_email(body.email)
+        user = await users.search_by_email(body.email)
     except Exception:
         await attempts.add(email=body.email, ip=ip or "", success=False)
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -139,8 +130,8 @@ async def login_user(
             token=TokenResponse(access_token=access_token, token_type="bearer"),
         ).model_dump(mode="json")
     )
-    cookies.set_access(resp, access_token, access_ttl)          # đã có sẵn phía bạn
-    cookies.set_refresh(resp, refresh_token, refresh_ttl)       # cần thêm method này
+    cookies.set_access(resp, access_token, access_ttl)       
+    cookies.set_refresh(resp, refresh_token, refresh_ttl)    
     return resp
 
 @router.post("/logout", status_code=204)

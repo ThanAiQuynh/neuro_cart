@@ -34,8 +34,14 @@ class ApiKey(Base, UUIDPk, TimestampMixin):
     )
 
     last_used_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True))
-    expires_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True))
-    revoked_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False
+    )
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True
+    )
 
     # relationship tới User
     user: Mapped["User"] = relationship(back_populates="api_keys")

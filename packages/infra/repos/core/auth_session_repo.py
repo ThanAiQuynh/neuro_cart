@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
+from sqlalchemy.dialects.postgresql import INET
+from sqlalchemy import bindparam
 
 from packages.infra.db.models.ops.auth_session import AuthSession
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +24,7 @@ class AuthSessionRepo:
         """
         sess = AuthSession(
             user_id=user_id,
-            ip=ip,
+            ip=bindparam("ip", ip, type_=INET()),
             user_agent=user_agent,
             last_seen_at=datetime.now(timezone.utc)  # Ghi nhận thời điểm tạo phiên
         )

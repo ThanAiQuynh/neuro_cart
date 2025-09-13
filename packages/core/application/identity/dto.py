@@ -68,6 +68,15 @@ class AddressDTO(BaseModel):
     country_code: str
     is_default: bool = False
 
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class LoginResponse(BaseModel):
+    user: UserDTO
+    token: TokenResponse
+
+
 def user_to_dto(user: object) -> UserDTO:
     roles = []
     if hasattr(user, "roles") and getattr(user, "roles"):

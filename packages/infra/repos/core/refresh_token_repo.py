@@ -1,4 +1,5 @@
 import datetime
+from time import timezone
 from typing import Optional
 from uuid import UUID
 from sqlalchemy import select, update
@@ -42,7 +43,6 @@ class RefreshTokenRepo:
             family_id=family_id,
             token_hash=token_hash,
             expires_at=expires_at,
-            revoked=False,
         )
         self.s.add(rt)  # Thêm đối tượng vào session
         await self.s.flush()  # Đẩy thay đổi lên DB (chưa commit)
@@ -68,7 +68,7 @@ class RefreshTokenRepo:
         stmt = (
             update(RefreshToken)
             .where(RefreshToken.id == jti)
-            .values(revoked=True)
+            .values(revoked_at = datetime.now(timezone.utc))
         )
         await self.s.execute(stmt)  # Thực thi câu lệnh update
         if commit:

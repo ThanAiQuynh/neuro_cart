@@ -12,7 +12,7 @@ class DocumentChunk(Base, UUIDPk, TimestampMixin, SoftDeleteMixin):
     __table_args__ = (
         Index(
             "ix_rag_document_chunks_embedding_live",
-            text("embedding"),
+            "embedding",
             postgresql_using="ivfflat",
             postgresql_with={"lists": "100"},
             postgresql_where=text("deleted_at IS NULL"),
