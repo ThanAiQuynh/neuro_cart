@@ -7,9 +7,12 @@ from sqlalchemy.orm import Session
 from apps.api.presenters.auth_cookies import AuthCookieManager, CookieConfig
 from packages.infra.db.session import get_session
 from packages.infra.repos.core.address_repo import AddressRepo
+from packages.infra.repos.core.auth_session_repo import AuthSessionRepo
 from packages.infra.repos.core.customer_repo import CustomerRepo
+from packages.infra.repos.core.refresh_token_repo import RefreshTokenRepo
 from packages.infra.repos.core.role_repo import RoleRepo
 from packages.infra.repos.core.user_repo import UserRepo
+from packages.infra.repos.core.login_attemp_repo import LoginAttemptRepo
 from packages.infra.security.passwords import default_password_hasher, BcryptPasswordHasher
 from packages.infra.security.tokens import TokenService
 from apps.api.settings import settings
@@ -33,6 +36,15 @@ def get_auth_cookie_manager() -> AuthCookieManager:
     )
     return AuthCookieManager(cfg)
 
+def get_login_attempt_repo(db: Session = Depends(get_session)) -> LoginAttemptRepo:
+    return LoginAttemptRepo(db)
+
+def get_auth_session_repo(db: Session = Depends(get_session)) -> AuthSessionRepo: 
+    return AuthSessionRepo(db)
+
+def get_refresh_token_repo(db: Session = Depends(get_session)) -> RefreshTokenRepo:
+    return RefreshTokenRepo(db)
+
 # ---------- Repos ----------
 def get_user_repo(db: Session = Depends(get_session)) -> UserRepo:
     return UserRepo(db)
@@ -49,3 +61,9 @@ def get_address_repo(db: Session = Depends(get_session)) -> AddressRepo:
 # ---------- App config ----------
 def get_access_token_ttl() -> timedelta:
     return timedelta(hours=settings.access_token_expires_hours)
+
+def get_refresh_token_ttl() -> timedelta: 
+    return timedelta(days=settings.refresh_token_expires_days)
+
+def get_refresh_token_pepper() -> str: 
+    return settings.refresh_token_pepper

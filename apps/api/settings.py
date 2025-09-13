@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     access_token_expires_hours: int = Field(default=12, env="ACCESS_TOKEN_EXPIRES_HOURS")
     default_customer_role: str = Field(default="customer", env="DEFAULT_CUSTOMER_ROLE")
 
+    refresh_token_expires_days: int = Field(default=30, env="REFRESH_TOKEN_EXPIRES_DAYS")
+    refresh_token_pepper: str = Field(env="REFRESH_TOKEN_PEPPER")
+
     # Legacy secret (if used elsewhere)
     secret_key: str = Field("dev-secret-key-change-me", env="SECRET_KEY")
 
